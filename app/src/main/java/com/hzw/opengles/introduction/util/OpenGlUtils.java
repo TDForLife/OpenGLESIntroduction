@@ -39,31 +39,51 @@ public class OpenGlUtils {
         return loadTexture(img, usedTexId, true);
     }
 
+    /**
+     * GLES20.glActiveTexture 一般在 glBindTexture 之前执行，单纹理的创建不需要激活
+     * https://www.jianshu.com/p/5e0d05b1d003
+     * https://blog.xujiaji.com/post/Learn-OpenGL-Lesson-Six
+     * @param img
+     * @param usedTexId
+     * @param recycle
+     * @return
+     */
     public static int loadTexture(final Bitmap img, final int usedTexId, final boolean recycle) {
-        int textures[] = new int[]{-1};
+        int[] textures = new int[]{-1};
         if (usedTexId == NO_TEXTURE) {
+            // GPU 创建一张纹理（1 表示想要生成的纹理的数量），即「纹理对象」，Texture Object
             GLES20.glGenTextures(1, textures, 0);
+            // GLES20.GL_TEXTURE_2D 描述的是一个「纹理目标」，即 Texture Target
+            // 有个 Texture Target 前置概念，叫 Texture Unit，即「纹理单元」，一个纹理单元可以存着多个纹理目标
+            // glBindTexture 将纹理对象，绑定到当前被激活的纹理单元上的纹理目标，这个绑定行为，其实就决定了这个纹理对象的类型
+            // 一旦绑定后，这个纹理的类型就确定了，无法将它绑定到其他纹理目标
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+            // 设置纹理属性 - 放大过滤器 - 线性放大
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            // 设置纹理属性 - 缩小过滤器 - 线性缩小
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-            //纹理也有坐标系，称UV坐标，或者ST坐标
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT); // S轴的拉伸方式为重复，决定采样值的坐标超出图片范围时的采样方式
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT); // T轴的拉伸方式为重复
-
+            // 纹理也有坐标系，称 UV 坐标，或者 ST 坐标
+            // S 轴的拉伸方式为重复，决定采样值的坐标超出图片范围时的采样方式
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
+            // T 轴的拉伸方式为重复
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
+            // 将 Bitmap 传递到已经绑定的纹理中
             GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, img, 0);
         } else {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, usedTexId);
+            // 纹理已经存在了，就执行纹理替换
             GLUtils.texSubImage2D(GLES20.GL_TEXTURE_2D, 0, 0, 0, img);
             textures[0] = usedTexId;
         }
         if (recycle) {
             img.recycle();
         }
+        // 返回纹理对象
         return textures[0];
     }
 
     public static int loadTexture(final IntBuffer data, final Size size, final int usedTexId) {
-        int textures[] = new int[1];
+        int[] textures = new int[1];
         if (usedTexId == NO_TEXTURE) {
             GLES20.glGenTextures(1, textures, 0);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
@@ -94,6 +114,7 @@ public class OpenGlUtils {
 
     /**
      * 加载着色器
+     *
      * @param strSource
      * @param iType
      * @return
@@ -113,6 +134,7 @@ public class OpenGlUtils {
 
     /**
      * 加载着色器程序
+     *
      * @param strVSource
      * @param strFSource
      * @return

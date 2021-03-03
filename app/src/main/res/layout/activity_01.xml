@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
 
     <android.opengl.GLSurfaceView
         android:id="@+id/gl_surfaceview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:layout_width="800px"
+        android:layout_height="800px"
+        android:background="@color/colorPrimary" />
 </FrameLayout>
