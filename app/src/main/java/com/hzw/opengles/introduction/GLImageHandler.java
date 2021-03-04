@@ -1,25 +1,39 @@
 package com.hzw.opengles.introduction;
 
 import android.opengl.GLES20;
+import android.opengl.Matrix;
 
 import com.hzw.opengles.introduction.util.OpenGlUtils;
 
 import java.nio.FloatBuffer;
 import java.util.LinkedList;
 
+
 /**
  * 负责显示一张图片
  */
 public class GLImageHandler {
-    // 数据中有多少个顶点，管线就调用多少次顶点着色器
+
+    // 数据中有多少个顶点，「管线就调用多少次顶点着色器」
+//    public static final String NO_FILTER_VERTEX_SHADER = "" +
+//            "attribute vec4 position;\n" + // 顶点着色器的顶点坐标,由外部程序传入
+//            "attribute vec4 inputTextureCoordinate;\n" + // 传入的纹理坐标
+//            "varying vec2 textureCoordinate;\n" +
+//            " \n" +
+//            "void main()\n" +
+//            "{\n" +
+//            "    gl_Position = position;\n" +
+//            "    textureCoordinate = inputTextureCoordinate.xy;\n" + // 最终顶点位置
+//            "}";
+
     public static final String NO_FILTER_VERTEX_SHADER = "" +
             "attribute vec4 position;\n" + // 顶点着色器的顶点坐标,由外部程序传入
             "attribute vec4 inputTextureCoordinate;\n" + // 传入的纹理坐标
             "varying vec2 textureCoordinate;\n" +
-            " \n" +
+            "uniform mat4 uMVPMatrix;\n" +
             "void main()\n" +
             "{\n" +
-            "    gl_Position = position;\n" +
+            "    gl_Position = uMVPMatrix * position;\n" +
             "    textureCoordinate = inputTextureCoordinate.xy;\n" + // 最终顶点位置
             "}";
 
@@ -39,6 +53,8 @@ public class GLImageHandler {
     protected int mGLAttribPosition;
     protected int mGLUniformTexture;
     protected int mGLAttribTextureCoordinate;
+    protected int mGLUniformPerspectiveMatrix;
+    private final float[] mMVPMatrix = new float[16];
 
     public GLImageHandler() {
         this(NO_FILTER_VERTEX_SHADER, NO_FILTER_FRAGMENT_SHADER);
@@ -56,6 +72,13 @@ public class GLImageHandler {
         mGLAttribPosition = GLES20.glGetAttribLocation(mGLProgId, "position"); // 顶点着色器的顶点坐标
         mGLUniformTexture = GLES20.glGetUniformLocation(mGLProgId, "inputImageTexture"); // 传入的图片纹理
         mGLAttribTextureCoordinate = GLES20.glGetAttribLocation(mGLProgId, "inputTextureCoordinate"); // 顶点着色器的纹理坐标
+        mGLUniformPerspectiveMatrix = GLES20.glGetUniformLocation(mGLProgId, "uMVPMatrix");
+    }
+
+    public final void onChanged(int width, int height) {
+        // https://blog.piasy.com/2016/06/07/Open-gl-es-android-2-part-1/index.html
+        Matrix.perspectiveM(mMVPMatrix, 0, 45, (float) width / height, 0.1f, 100f);
+        Matrix.translateM(mMVPMatrix, 0, -0f, 0f, -0.1f);
     }
 
     public void onDraw(final int textureId, final FloatBuffer cubeBuffer,
@@ -76,6 +99,8 @@ public class GLImageHandler {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
             GLES20.glUniform1i(mGLUniformTexture, 0);
         }
+
+        GLES20.glUniformMatrix4fv(mGLUniformPerspectiveMatrix, 1, false, mMVPMatrix, 0);
 
         // 绘制顶点 ，方式有顶点法和索引法
         // GLES20.GL_TRIANGLE_STRIP即每相邻三个顶点组成一个三角形，为一系列相接三角形构成

@@ -24,6 +24,7 @@ import javax.microedition.khronos.opengles.GL10;
  * 加载纹理
  * 控制纹理位置
  * 控制纹理大小
+ * 控制纹理矩阵变换
  * 实现纹理动画
  */
 public class GLShowImageActivity extends Activity {
@@ -133,8 +134,9 @@ public class GLShowImageActivity extends Activity {
             // 设置窗口大小
             // GLES20.glViewport(0, 0, 800, 800);
             GLES20.glViewport(0, 0, width, height);
+            mGLImageHandler.onChanged(width, height);
             // 调整图片显示大小。如果不调用该方法，则会导致图片整个拉伸到填充窗口显示区域
-            adjustImageScaling();
+//            adjustImageScaling();
         }
 
         @Override

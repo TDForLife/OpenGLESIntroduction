@@ -12,5 +12,6 @@
     <FrameLayout
         android:layout_width="800px"
         android:layout_height="800px"
-        android:background="@color/colorPrimary" />
+        android:background="@color/colorPrimary"
+        android:visibility="gone" />
 </FrameLayout>
